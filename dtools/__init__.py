@@ -1,1 +1,2 @@
-from data.build import compile_csv
+from data.base import data
+from analyze.predict import linear_regression
