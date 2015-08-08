@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+from sklearn.cluster import KMeans
 
 class linear_regression(object):
 
-    #|Initialize linear reg model, load DataFrame into class, create log DataFrame,
     def __init__(self, data):
         self.d = data
 
-    #|Determine best fit line and output data
     def run(self, data_name, x_col, y_col, alpha=0.05, display=False):
 
         if len(self.d.df['lr_summary'].index) > 0:
@@ -23,6 +22,7 @@ class linear_regression(object):
                    'r_squared':res.rsquared, 'adj_r_squared':res.rsquared_adj,
                    'f_stat':res.fvalue, 'prob_f_stat':res.f_pvalue}
         self.d.df['lr_summary'] = self.d.df['lr_summary'].append(summary, ignore_index=True)
+
         vars = []
         for i in range(len(res.tvalues)):
             var = {'test_id':test_id, 'name':x_col[i], 'coeff':res.params[i],
@@ -33,3 +33,39 @@ class linear_regression(object):
 
         if display == True:
             print res.summary()
+
+class cluster(object):
+
+    def __init__(self, data):
+        self.d = data
+
+    def kmeans(self, data_name, cols, n_clusters):
+
+        self.d.xy_array(data_name, cols)
+        model = KMeans(n_clusters)
+        df = pd.DataFrame(self.d.df[data_name])
+        df['cluster'] = model.fit_predict(self.d.x)
+
+        headers = []
+        for i in range(n_clusters):
+            headers.append('dist_%s' % str(i))
+        dist = pd.DataFrame(model.transform(self.d.x), columns=headers)
+        df = df.join(dist)
+
+        max = 0
+        for df_name in self.d.df:
+            if 'kc_data_' in df_name:
+                num = int(df_name[df_name.rfind('_')+1:])
+                if num >= max:
+                    max = num + 1
+        self.d.df['kc_data_%s' % str(max)] = df
+
+        summary = pd.DataFrame()
+        for i in range(n_clusters):
+            clus = {'cluster':i}
+            for j in range(len(cols)):
+                clus['%s_mean' % cols[j]] = model.cluster_centers_[i][j]
+            summary = summary.append(clus, ignore_index=True)
+        self.d.df['kc_summary_%s' % max] = summary
+
+

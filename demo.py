@@ -1,9 +1,9 @@
 import dtools
 
 data = dtools.data()
-data.load_csv('cereal', '/home/ross/data/cereal.csv')
-lr = dtools.linear_regression(data)
-lr.run('cereal',['Carbs','Fiber','Sugars','Sodium'],'Calories',display=True)
-lr.run('cereal',['Carbs','Fiber'],'Calories',display=True)
-print lr.d.df['lr_summary']
-print lr.d.df['lr_coeff']
+data.load_csv('/home/ross/data/cities.csv')
+c = dtools.cluster(data)
+c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 4)
+c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 3)
+c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 2)
+c.d.to_csv('ALL','/home/ross/Desktop/')
