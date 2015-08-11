@@ -27,22 +27,22 @@ class data(object):
             else:
                 self.y = self.df[data_name][[y_col]].values
 
-    def load_csv(self, file_path, mode='single', file_search='', index=''):
+    def load_csv(self, file_path, mode='single', file_search='', index='', sep=','):
 
         if mode == 'single':
             data_name = file_path[file_path.rfind('/')+1:-4]
             print '-- Loading %s.csv --' % data_name
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=sep)
 
         else:
             for fn in os.listdir(file_path):
                 if '.csv' in fn:
                     if file_search in fn or file_search == '':
                             print '-- Loading %s --' % fn
-                            df = pd.read_csv(file_path+fn)
+                            df = pd.read_csv(file_path+fn, sep=sep)
 
                     if mode == 'compile':
-                        df = df.append(pd.read_csv(file_path+fn), ignore_index=True)
+                        df = df.append(pd.read_csv(file_path+fn, sep=sep), ignore_index=True)
                     elif mode == 'all':
                         if index <> '':
                             df = df.set_index(index)

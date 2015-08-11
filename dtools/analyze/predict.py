@@ -39,12 +39,16 @@ class cluster(object):
     def __init__(self, data):
         self.d = data
 
-    def kmeans(self, data_name, cols, n_clusters):
+    def kmeans(self, data_name, x_col, n_clusters, y_col=''):
 
-        self.d.xy_array(data_name, cols)
+        self.d.xy_array(data_name, x_col, y_col)
         model = KMeans(n_clusters)
         df = pd.DataFrame(self.d.df[data_name])
-        df['cluster'] = model.fit_predict(self.d.x)
+
+        if y_col == '':
+            df['cluster'] = model.fit_predict(self.d.x)
+        else:
+            df['cluster'] = model.fit_predict(self.d.x, self.d.y)
 
         headers = []
         for i in range(n_clusters):
@@ -60,11 +64,13 @@ class cluster(object):
                     max = num + 1
         self.d.df['kc_data_%s' % str(max)] = df
 
+        print(model.cluster_centers_)
+
         summary = pd.DataFrame()
         for i in range(n_clusters):
             clus = {'cluster':i}
-            for j in range(len(cols)):
-                clus['%s_mean' % cols[j]] = model.cluster_centers_[i][j]
+            for j in range(len(x_col)):
+                clus['%s_mean' % x_col[j]] = model.cluster_centers_[i][j]
             summary = summary.append(clus, ignore_index=True)
         self.d.df['kc_summary_%s' % max] = summary
 
