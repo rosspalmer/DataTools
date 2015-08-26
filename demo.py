@@ -13,8 +13,9 @@ r.linear('cereal', ['Carbs','Sugars'], 'Calories')
 
 #|Perform k-Means Clustering on 'cities' example dataset
 c = dtools.cluster(r.d)
-c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate', "Per capita income(000's)"], 3)
-c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate'], 3)
+c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate', "Per capita income(000's)"],
+                3, id_col='City')
+c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate'], 3, id_col='City')
 
 #|Perform k-Means Nearest Neighbor classification on 'loans' example dataset
 c.knearest('loans', ['Income','Assets','Debts','Amount'], 'Late', 2)

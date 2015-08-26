@@ -13,8 +13,10 @@ class data(object):
         self.mod = {}
         self.x_train = []
         self.y_train = []
+        self.id_train = []
         self.x_valid = []
         self.y_valid = []
+        self.id_valid = []
 
     #|Base command to prepare data for use in statistic modules
     #|----------------------------------------------------------------------------------
@@ -25,48 +27,43 @@ class data(object):
     #| y_partition => define "Y" value which is considered a "success" when partitioning data
     #|                  If set to "None" then the data will NOT be partitioned
     #| train_size => count size of the training set, must be interger and remaining count
-    #|                 will be used a validation set
+    #|                 will be used a validation set (NOT FUNCTIONAL YET)
     #| train_ratio => set ratio of "success" Y values to "non-success" Y values in training set
+    #| id_col =>  string or list of strings with the names of columns to be used as identifiers
+    #|              for output data
     def prepare(self, data_name, x_col, y_col='', y_success=None,
-                train_size='all', train_ratio=0.5):
+                train_size='all', train_ratio=0.5, id_col=''):
 
         df = self.df[data_name]
 
         if train_size == 'all':
-            self.x_train, self.y_train = self.xy_array(df, x_col, y_col)
+            self.x_train, self.y_train = xy_array(df, x_col, y_col)
+            if id_col <> '':
+                self.id_train = id_cols(df, id_col)
+
         else:
 
             df['random'] = rn.randint(1,len(df.index)*2)
             df = df.sort('random')
 
             if y_success == None:
-                self.x_train, self.y_train = self.xy_array(df[:train_size-1], x_col, y_col)
-                self.x_valid, self.y_valid = self.xy_array(df[train_size:], x_col, y_col)
+                self.x_train, self.y_train = xy_array(df[:train_size-1], x_col, y_col)
+                self.x_valid, self.y_valid = xy_array(df[train_size:], x_col, y_col)
+                if id_col <> '':
+                    self.id_train = id_cols(df[:train_size-1], id_col)
+                    self.id_valid = id_cols(df[train_size:], id_col)
 
             else:
                 win = df[df[y_col] == y_success]
                 lose = df[df[y_col] <> y_success]
-                self.x_train, self.y_train = self.xy_array(win[:train_size-1]\
+                self.x_train, self.y_train = xy_array(win[:train_size-1]\
                                                            .append(lose[:train_size-1], ignore_index=True))
-                self.x_valid, self.y_valid = self.xy_array(win[train_size:]\
+                self.x_valid, self.y_valid = xy_array(win[train_size:]\
                                                            .append(lose[train_size:], ignore_index=True))
 
-    #|Convert DataFrame X and Y columns into numpy arrays
-    def xy_array(self, df, x_col, y_col):
-
-        if isinstance(x_col, list):
-            x = df[x_col].values
-        else:
-            x = df[[x_col]].values
-        if y_col <> '':
-            if isinstance(y_col, list):
-                y = df[y_col].values
-            else:
-                y = df[[y_col]].values
-        else:
-            y = ''
-
-        return x, y
+                if id_col <> '':
+                    self.id_train = id_cols(win[:train_size-1].append(lose[:train_size-1], ignore_index=True))
+                    self.id_valid = id_cols(win[train_size:].append(lose[train_size:], ignore_index=True))
 
     #|Load data from single or multiple CSV files into internal DataFrame within "data" object
     def from_csv(self, file_path, mode='single', file_search='', index='', sep=','):
@@ -108,4 +105,28 @@ class data(object):
                 file_string = '%s%s.csv' % (file_path, data_name)
                 self.df[data_name].to_csv(file_string, index=index)
 
+#|Convert DataFrame X and Y columns into numpy arrays
+def xy_array(df, x_col, y_col):
 
+    if isinstance(x_col, list):
+        x = df[x_col].values
+    else:
+        x = df[[x_col]].values
+    if y_col <> '':
+        if isinstance(y_col, list):
+            y = df[y_col].values
+        else:
+            y = df[[y_col]].values
+    else:
+        y = ''
+
+    return x, y
+
+#|Return DataFrame or Series of identification columns
+def id_cols(df, id_col):
+
+    if isinstance(id_col, list):
+        id = df[id_col]
+    else:
+        id = df[[id_col]]
+    return id

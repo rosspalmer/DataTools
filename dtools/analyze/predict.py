@@ -43,7 +43,7 @@ class cluster(object):
         self.d = data
 
     # |Simple KMeans clustering method for 'n_cluster' number of clusters
-    def kmeans(self, data_name, x_col, n_clusters):
+    def kmeans(self, data_name, x_col, n_clusters, id_col=''):
 
         # |Determine and set 'test_id' to the largest previous 'test_id' +1
         if 'km_data' in self.d.df:
@@ -54,9 +54,13 @@ class cluster(object):
             test_id = 1
 
         # |Prepare data by creating array and DataFrame using columns in 'x_col'
-        self.d.prepare(data_name, x_col)
+        self.d.prepare(data_name, x_col, id_col=id_col)
         df = pd.DataFrame(self.d.x_train, columns=x_col)
+
+        #|Add test ID number and identifier columns
         df['test_id'] = test_id
+        if id_col <> '':
+            df = df.join(self.d.id_train)
 
         # |Create model, fit data, and return prediction of cluster for each row
         model = KMeans(n_clusters)
@@ -84,7 +88,7 @@ class cluster(object):
         model_id = 'kmeans_%s' % str(test_id)
         self.d.mod[model_id] = model
 
-    def knearest(self, data_name, x_col, y_col, n_clusters):
+    def knearest(self, data_name, x_col, y_col, n_clusters, id_col=''):
 
         if 'kn_data' in self.d.df:
             test_id = self.d.df['kn_data']['test_id'].max() + 1
@@ -92,9 +96,11 @@ class cluster(object):
             self.d.df['kn_data'] = pd.DataFrame()
             test_id = 1
 
-        self.d.prepare(data_name, x_col, y_col)
+        self.d.prepare(data_name, x_col, y_col, id_col=id_col)
         df = pd.DataFrame(self.d.x_train, columns=x_col)
         df['test_id'] = test_id
+        if id_col <> '':
+            df = df.join(self.d.id_train)
 
         model = KNeighborsClassifier(n_clusters)
         model.fit(self.d.x_train, self.d.y_train)
