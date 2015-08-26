@@ -1,9 +1,23 @@
 import dtools
 
-data = dtools.data()
-data.load_csv('/home/ross/data/cities.csv')
-c = dtools.cluster(data)
-c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 4)
-c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 3)
-c.kmeans('cities',['% Black','% Hispanic','% Asian','Unemployment rate'], 2)
-c.d.to_csv('ALL','/home/ross/Desktop/')
+#|Create 'data' class object and load example CSV data
+d = dtools.data()
+d.from_csv('./example_csv/cereal.csv')
+d.from_csv('./example_csv/cities.csv')
+d.from_csv('./example_csv/loans.csv')
+
+#|Perform Linear Regression analysis on 'cereal' example dataset
+r = dtools.regression(d)
+r.linear('cereal', ['Carbs','Sugars','Sodium', 'Fiber'], 'Calories')
+r.linear('cereal', ['Carbs','Sugars'], 'Calories')
+
+#|Perform k-Means Clustering on 'cities' example dataset
+c = dtools.cluster(r.d)
+c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate', "Per capita income(000's)"], 3)
+c.kmeans('cities', ['% Black','% Hispanic', '% Asian', 'Median Age', 'Unemployment rate'], 3)
+
+#|Perform k-Means Nearest Neighbor classification on 'loans' example dataset
+c.knearest('loans', ['Income','Assets','Debts','Amount'], 'Late', 2)
+
+#|Dump data to CSV files on desktop
+c.d.to_csv('ALL', '/home/ross/Desktop/')

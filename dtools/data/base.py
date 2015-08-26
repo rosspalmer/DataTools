@@ -1,33 +1,75 @@
 import os
 import pandas as pd
+import random as rn
 
+#|Data class is used to store all data, partition data when needed,
+#|and convert DataFrames into numpy arrays for statistics modules
 class data(object):
 
+    #|Data class internal stores all external and internal DataFrames (df), all created models (mod),
+    #|current X and Y training numpy arrays (x(y)_train) and current X and Y validation numpy arrays (x(y)_valid)
     def __init__(self):
         self.df = {}
-        self.x = []
-        self.y = []
+        self.mod = {}
+        self.x_train = []
+        self.y_train = []
+        self.x_valid = []
+        self.y_valid = []
 
-    def create_tables(self):
-        df = {}
-        df['lr_summary'] = pd.DataFrame(columns=('test_id','n_var','n_obs','r_squared',
-                                                  'adj_r_squared','f_stat','prob_f_stat'))
-        df['lr_coeff']= pd.DataFrame(columns=('test_id','name','coeff','std_err','t',
-                                               'p','alpha','conf_l','conf_h'))
-        return df
+    #|Base command to prepare data for use in statistic modules
+    #|----------------------------------------------------------------------------------
+    #| data_name => name of DataFrame which will be input into statistic module,
+    #|              DataFrame must already be stored in "data" object
+    #| x_col => string or list of strings with the names of columns to be used as "X" data
+    #| y_col => string or list of strings with the names of columns to be used as "Y" data
+    #| y_partition => define "Y" value which is considered a "success" when partitioning data
+    #|                  If set to "None" then the data will NOT be partitioned
+    #| train_size => count size of the training set, must be interger and remaining count
+    #|                 will be used a validation set
+    #| train_ratio => set ratio of "success" Y values to "non-success" Y values in training set
+    def prepare(self, data_name, x_col, y_col='', y_success=None,
+                train_size='all', train_ratio=0.5):
 
-    def xy_array(self, data_name, x_col, y_col=''):
-        if isinstance(x_col, list):
-            self.x = self.df[data_name][x_col].values
+        df = self.df[data_name]
+
+        if train_size == 'all':
+            self.x_train, self.y_train = self.xy_array(df, x_col, y_col)
         else:
-            self.x = self.df[data_name][[x_col]].values
+
+            df['random'] = rn.randint(1,len(df.index)*2)
+            df = df.sort('random')
+
+            if y_success == None:
+                self.x_train, self.y_train = self.xy_array(df[:train_size-1], x_col, y_col)
+                self.x_valid, self.y_valid = self.xy_array(df[train_size:], x_col, y_col)
+
+            else:
+                win = df[df[y_col] == y_success]
+                lose = df[df[y_col] <> y_success]
+                self.x_train, self.y_train = self.xy_array(win[:train_size-1]\
+                                                           .append(lose[:train_size-1], ignore_index=True))
+                self.x_valid, self.y_valid = self.xy_array(win[train_size:]\
+                                                           .append(lose[train_size:], ignore_index=True))
+
+    #|Convert DataFrame X and Y columns into numpy arrays
+    def xy_array(self, df, x_col, y_col):
+
+        if isinstance(x_col, list):
+            x = df[x_col].values
+        else:
+            x = df[[x_col]].values
         if y_col <> '':
             if isinstance(y_col, list):
-                self.y = self.df[data_name][y_col].values
+                y = df[y_col].values
             else:
-                self.y = self.df[data_name][[y_col]].values
+                y = df[[y_col]].values
+        else:
+            y = ''
 
-    def load_csv(self, file_path, mode='single', file_search='', index='', sep=','):
+        return x, y
+
+    #|Load data from single or multiple CSV files into internal DataFrame within "data" object
+    def from_csv(self, file_path, mode='single', file_search='', index='', sep=','):
 
         if mode == 'single':
             data_name = file_path[file_path.rfind('/')+1:-4]
@@ -56,6 +98,7 @@ class data(object):
                 df = df.set_index(index)
             self.df[data_name] = df
 
+    #|Output data from internal DataFrame(s) to csv
     def to_csv(self, data_name, file_path, index=True):
         if data_name <> 'ALL':
             file_string = '%s%s.csv' % (file_path, data_name)

@@ -2,76 +2,105 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from sklearn.cluster import KMeans
+from sklearn.neighbors import KNeighborsClassifier
 
-class linear_regression(object):
+class regression(object):
 
     def __init__(self, data):
         self.d = data
 
-    def run(self, data_name, x_col, y_col, alpha=0.05, display=False):
+    def linear(self, data_name, x_col, y_col, alpha=0.05, display=False):
 
-        if len(self.d.df['lr_summary'].index) > 0:
+        if 'lr_summary' in self.d.df:
             test_id = self.d.df['lr_summary']['test_id'].max() + 1
         else:
+            self.d.df['lr_summary'] = pd.DataFrame()
+            self.d.df['lr_coeff'] = pd.DataFrame()
             test_id = 1
 
-        self.d.xy_array(data_name, x_col, y_col)
-
-        res = sm.OLS(self.d.y, self.d.x).fit()
+        self.d.prepare(data_name, x_col, y_col)
+        res = sm.OLS(self.d.y_train, self.d.x_train).fit()
         summary = {'test_id':test_id, 'n_var':res.df_model, 'n_obs':res.nobs,
                    'r_squared':res.rsquared, 'adj_r_squared':res.rsquared_adj,
                    'f_stat':res.fvalue, 'prob_f_stat':res.f_pvalue}
         self.d.df['lr_summary'] = self.d.df['lr_summary'].append(summary, ignore_index=True)
 
-        vars = []
+        coeffs = []
         for i in range(len(res.tvalues)):
-            var = {'test_id':test_id, 'name':x_col[i], 'coeff':res.params[i],
+            coeff = {'test_id':test_id, 'name':x_col[i], 'coeff':res.params[i],
                    'std_err':res.bse[i],'t':res.tvalues[i], 'p':res.pvalues[i],
                    'alpha':alpha,'conf_l':res.conf_int(alpha)[i][1],'conf_h':res.conf_int(alpha)[i][0]}
-            vars.append(var)
-        self.d.df['lr_coeff'] = self.d.df['lr_coeff'].append(vars, ignore_index=True)
+            coeffs.append(coeff)
+        self.d.df['lr_coeff'] = self.d.df['lr_coeff'].append(coeffs, ignore_index=True)
 
         if display == True:
             print res.summary()
 
+# |Cluster object for running and storing any cluster based analysis
 class cluster(object):
 
     def __init__(self, data):
         self.d = data
 
-    def kmeans(self, data_name, x_col, n_clusters, y_col=''):
+    # |Simple KMeans clustering method for 'n_cluster' number of clusters
+    def kmeans(self, data_name, x_col, n_clusters):
 
-        self.d.xy_array(data_name, x_col, y_col)
-        model = KMeans(n_clusters)
-        df = pd.DataFrame(self.d.df[data_name])
-
-        if y_col == '':
-            df['cluster'] = model.fit_predict(self.d.x)
+        # |Determine and set 'test_id' to the largest previous 'test_id' +1
+        if 'km_data' in self.d.df:
+            test_id = self.d.df['km_data']['test_id'].max() + 1
         else:
-            df['cluster'] = model.fit_predict(self.d.x, self.d.y)
+            self.d.df['km_data'] = pd.DataFrame()
+            self.d.df['km_clusters'] = pd.DataFrame()
+            test_id = 1
 
+        # |Prepare data by creating array and DataFrame using columns in 'x_col'
+        self.d.prepare(data_name, x_col)
+        df = pd.DataFrame(self.d.x_train, columns=x_col)
+        df['test_id'] = test_id
+
+        # |Create model, fit data, and return prediction of cluster for each row
+        model = KMeans(n_clusters)
+        df['cluster'] = model.fit_predict(self.d.x_train)
+
+        # |Add distance to each cluster for each row to summary data
         headers = []
         for i in range(n_clusters):
             headers.append('dist_%s' % str(i))
-        dist = pd.DataFrame(model.transform(self.d.x), columns=headers)
+        dist = pd.DataFrame(model.transform(self.d.x_train), columns=headers)
         df = df.join(dist)
 
-        max = 0
-        for df_name in self.d.df:
-            if 'kc_data_' in df_name:
-                num = int(df_name[df_name.rfind('_')+1:])
-                if num >= max:
-                    max = num + 1
-        self.d.df['kc_data_%s' % str(max)] = df
+        self.d.df['km_data'] = self.d.df['km_data'].append(df, ignore_index=True)
 
-        print(model.cluster_centers_)
-
-        summary = pd.DataFrame()
+        # |Create DataFrame with each cluster and the mean value for each input column
+        df = pd.DataFrame()
         for i in range(n_clusters):
             clus = {'cluster':i}
             for j in range(len(x_col)):
                 clus['%s_mean' % x_col[j]] = model.cluster_centers_[i][j]
-            summary = summary.append(clus, ignore_index=True)
-        self.d.df['kc_summary_%s' % max] = summary
+            df = df.append(clus, ignore_index=True)
+        df['test_id'] = test_id
+        self.d.df['km_clusters'] = self.d.df['km_clusters'].append(df, ignore_index=True)
 
+        model_id = 'kmeans_%s' % str(test_id)
+        self.d.mod[model_id] = model
+
+    def knearest(self, data_name, x_col, y_col, n_clusters):
+
+        if 'kn_data' in self.d.df:
+            test_id = self.d.df['kn_data']['test_id'].max() + 1
+        else:
+            self.d.df['kn_data'] = pd.DataFrame()
+            test_id = 1
+
+        self.d.prepare(data_name, x_col, y_col)
+        df = pd.DataFrame(self.d.x_train, columns=x_col)
+        df['test_id'] = test_id
+
+        model = KNeighborsClassifier(n_clusters)
+        model.fit(self.d.x_train, self.d.y_train)
+        df['predict'] = model.predict(self.d.x_train)
+        self.d.df['kn_data'] = self.d.df['kn_data'].append(df, ignore_index=True)
+
+        model_id = 'knearest_%s' % str(test_id)
+        self.d.mod[model_id] = model
 
