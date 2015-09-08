@@ -20,25 +20,38 @@ class regression(object):
         else:
             self.d.df['lnr_summary'] = pd.DataFrame()
             self.d.df['lnr_coeff'] = pd.DataFrame()
+            self.d.df['lnr_data'] = pd.DataFrame()
             test_id = 1
 
+        #|Prepare data and fit linear regression model
         df = self.d.prepare(data_name, x_col, y_col)
-        res = sm.OLS(self.d.y_train, self.d.x_train).fit()
-        summary = {'test_id':test_id, 'n_var':res.df_model, 'n_obs':res.nobs,
-                   'r_squared':res.rsquared, 'adj_r_squared':res.rsquared_adj,
-                   'f_stat':res.fvalue, 'prob_f_stat':res.f_pvalue}
+        model = sm.OLS(self.d.y_train, self.d.x_train).fit()
+
+        #|Add 'prediction' column and test_id column to test DataFrame
+        df['prediction'] = model.predict(self.d.x_train)
+        df['test_id'] = test_id
+
+        #|Append current test DataFrame to compiled 'data' DataFrame
+        self.d.df['lnr_data'] = self.d.df['lnr_data'].append(df, ignore_index=True)
+
+        #|Create dictionary with individual test model summary and add to compiled 'summary' DataFrame
+        summary = {'test_id':test_id, 'n_var':model.df_model, 'n_obs':model.nobs,
+                   'r_squared':model.rsquared, 'adj_r_squared':model.rsquared_adj,
+                   'f_stat':model.fvalue, 'prob_f_stat':model.f_pvalue}
         self.d.df['lnr_summary'] = self.d.df['lnr_summary'].append(summary, ignore_index=True)
 
+        #|Create dictionary for each coefficent on individual test and add to compiled 'coeff' dictionary
         coeffs = []
-        for i in range(len(res.tvalues)):
-            coeff = {'test_id':test_id, 'name':x_col[i], 'coeff':res.params[i],
-                   'std_err':res.bse[i],'t':res.tvalues[i], 'p':res.pvalues[i],
-                   'alpha':alpha,'conf_l':res.conf_int(alpha)[i][1],'conf_h':res.conf_int(alpha)[i][0]}
+        for i in range(len(model.tvalues)):
+            coeff = {'test_id':test_id, 'name':x_col[i], 'coeff':model.params[i],
+                   'std_err':model.bse[i],'t':model.tvalues[i], 'p':model.pvalues[i],
+                   'alpha':alpha,'conf_l':model.conf_int(alpha)[i][1],'conf_h':model.conf_int(alpha)[i][0]}
             coeffs.append(coeff)
         self.d.df['lnr_coeff'] = self.d.df['lnr_coeff'].append(coeffs, ignore_index=True)
 
+        #|Display individual test summary if required
         if display == True:
-            print res.summary()
+            print model.summary()
 
 # |Cluster object for running and storing any cluster based analysis
 class cluster(object):
