@@ -34,13 +34,16 @@ class data(object):
     def prepare(self, data_name, x_col, y_col='', y_success=None,
                 train_size='all', train_ratio=0.5, id_col=''):
 
+        #|Pull external data from DataFrame library
         df = self.df[data_name]
 
+        #|Create X and Y numpy arrays where all data is to be used for training set
         if train_size == 'all':
             self.x_train, self.y_train = xy_array(df, x_col, y_col)
             if id_col <> '':
                 self.id_train = id_cols(df, id_col)
 
+        #|Create X and Y numpy arrays where data will be partitioned
         else:
 
             df['random'] = rn.randint(1,len(df.index)*2)
@@ -64,6 +67,37 @@ class data(object):
                 if id_col <> '':
                     self.id_train = id_cols(win[:train_size-1].append(lose[:train_size-1], ignore_index=True))
                     self.id_valid = id_cols(win[train_size:].append(lose[train_size:], ignore_index=True))
+
+        return self.test_df(x_col, y_col, id_col)
+
+    #|Create DataFrame with all data rows for "X", "Y" and identification columns
+    def test_df(self, x_col, y_col, id_col):
+
+        #|Create "X" DataFrame
+        if isinstance(x_col, list):
+            df = pd.DataFrame(self.x_train, columns=x_col)
+        else:
+            df = pd.DataFrame(self.x_train, columns=[x_col])
+
+        #|Create "Y" DataFrame (if required)
+        if y_col <> '':
+            if isinstance(y_col, list):
+                df_y = pd.DataFrame(self.y_train, columns=y_col)
+            else:
+                df_y = pd.DataFrame(self.y_train, columns=[y_col])
+
+            #|Join "Y" columns to "X" columns
+            df = df.join(df_y)
+
+        #|Add identification columns (if present)
+        if id_col <> '':
+            if isinstance(id_col, list):
+                df_id = pd.DataFrame(self.id_train, columns=id_col)
+            else:
+                df_id = pd.DataFrame(self.id_train, columns=[id_col])
+            df = df.join(df_id)
+
+        return df
 
     #|Load data from single or multiple CSV files into internal DataFrame within "data" object
     def from_csv(self, file_path, mode='single', file_search='', index='', sep=','):
@@ -130,3 +164,4 @@ def id_cols(df, id_col):
     else:
         id = df[[id_col]]
     return id
+

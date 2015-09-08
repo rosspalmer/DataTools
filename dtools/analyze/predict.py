@@ -3,27 +3,31 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 
 class regression(object):
 
     def __init__(self, data):
         self.d = data
 
+    #|Simple and multiple linear regression model
     def linear(self, data_name, x_col, y_col, alpha=0.05, display=False):
 
-        if 'lr_summary' in self.d.df:
-            test_id = self.d.df['lr_summary']['test_id'].max() + 1
+        #|Determine if linear regression DataFrames are present and if not
+        #|create blank DataFrames. Also, set 'test_id'
+        if 'lnr_summary' in self.d.df:
+            test_id = self.d.df['lnr_summary']['test_id'].max() + 1
         else:
-            self.d.df['lr_summary'] = pd.DataFrame()
-            self.d.df['lr_coeff'] = pd.DataFrame()
+            self.d.df['lnr_summary'] = pd.DataFrame()
+            self.d.df['lnr_coeff'] = pd.DataFrame()
             test_id = 1
 
-        self.d.prepare(data_name, x_col, y_col)
+        df = self.d.prepare(data_name, x_col, y_col)
         res = sm.OLS(self.d.y_train, self.d.x_train).fit()
         summary = {'test_id':test_id, 'n_var':res.df_model, 'n_obs':res.nobs,
                    'r_squared':res.rsquared, 'adj_r_squared':res.rsquared_adj,
                    'f_stat':res.fvalue, 'prob_f_stat':res.f_pvalue}
-        self.d.df['lr_summary'] = self.d.df['lr_summary'].append(summary, ignore_index=True)
+        self.d.df['lnr_summary'] = self.d.df['lnr_summary'].append(summary, ignore_index=True)
 
         coeffs = []
         for i in range(len(res.tvalues)):
@@ -31,7 +35,7 @@ class regression(object):
                    'std_err':res.bse[i],'t':res.tvalues[i], 'p':res.pvalues[i],
                    'alpha':alpha,'conf_l':res.conf_int(alpha)[i][1],'conf_h':res.conf_int(alpha)[i][0]}
             coeffs.append(coeff)
-        self.d.df['lr_coeff'] = self.d.df['lr_coeff'].append(coeffs, ignore_index=True)
+        self.d.df['lnr_coeff'] = self.d.df['lnr_coeff'].append(coeffs, ignore_index=True)
 
         if display == True:
             print res.summary()
@@ -54,13 +58,10 @@ class cluster(object):
             test_id = 1
 
         # |Prepare data by creating array and DataFrame using columns in 'x_col'
-        self.d.prepare(data_name, x_col, id_col=id_col)
-        df = pd.DataFrame(self.d.x_train, columns=x_col)
+        df = self.d.prepare(data_name, x_col, id_col=id_col)
 
         #|Add test ID number and identifier columns
         df['test_id'] = test_id
-        if id_col <> '':
-            df = df.join(self.d.id_train)
 
         # |Create model, fit data, and return prediction of cluster for each row
         model = KMeans(n_clusters)
@@ -96,15 +97,12 @@ class cluster(object):
             self.d.df['kn_data'] = pd.DataFrame()
             test_id = 1
 
-        self.d.prepare(data_name, x_col, y_col, id_col=id_col)
-        df = pd.DataFrame(self.d.x_train, columns=x_col)
+        df = self.d.prepare(data_name, x_col, y_col, id_col=id_col)
         df['test_id'] = test_id
-        if id_col <> '':
-            df = df.join(self.d.id_train)
 
         model = KNeighborsClassifier(n_clusters)
         model.fit(self.d.x_train, self.d.y_train)
-        df['predict'] = model.predict(self.d.x_train)
+        df['prediction'] = model.predict(self.d.x_train)
         self.d.df['kn_data'] = self.d.df['kn_data'].append(df, ignore_index=True)
 
         model_id = 'knearest_%s' % str(test_id)
