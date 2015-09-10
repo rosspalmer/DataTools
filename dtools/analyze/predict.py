@@ -15,12 +15,12 @@ class regression(object):
 
         #|Determine if linear regression DataFrames are present and if not
         #|create blank DataFrames. Also, set 'test_id'
-        if 'lnr_summary' in self.d.df:
-            test_id = self.d.df['lnr_summary']['test_id'].max() + 1
+        if 'summary' in self.d.df['linear']:
+            test_id = self.d.df['linear']['summary']['test_id'].max() + 1
         else:
-            self.d.df['lnr_summary'] = pd.DataFrame()
-            self.d.df['lnr_coeff'] = pd.DataFrame()
-            self.d.df['lnr_data'] = pd.DataFrame()
+            self.d.df['linear']['summary'] = pd.DataFrame()
+            self.d.df['linear']['coeff'] = pd.DataFrame()
+            self.d.df['linear']['data'] = pd.DataFrame()
             test_id = 1
 
         #|Prepare data and fit linear regression model
@@ -32,13 +32,13 @@ class regression(object):
         df['test_id'] = test_id
 
         #|Append current test DataFrame to compiled 'data' DataFrame
-        self.d.df['lnr_data'] = self.d.df['lnr_data'].append(df, ignore_index=True)
+        self.d.df['linear']['data'] = self.d.df['linear']['data'].append(df, ignore_index=True)
 
         #|Create dictionary with individual test model summary and add to compiled 'summary' DataFrame
         summary = {'test_id':test_id, 'n_var':model.df_model, 'n_obs':model.nobs,
                    'r_squared':model.rsquared, 'adj_r_squared':model.rsquared_adj,
                    'f_stat':model.fvalue, 'prob_f_stat':model.f_pvalue}
-        self.d.df['lnr_summary'] = self.d.df['lnr_summary'].append(summary, ignore_index=True)
+        self.d.df['linear']['summary'] = self.d.df['linear']['summary'].append(summary, ignore_index=True)
 
         #|Create dictionary for each coefficent on individual test and add to compiled 'coeff' dictionary
         coeffs = []
@@ -47,11 +47,28 @@ class regression(object):
                    'std_err':model.bse[i],'t':model.tvalues[i], 'p':model.pvalues[i],
                    'alpha':alpha,'conf_l':model.conf_int(alpha)[i][1],'conf_h':model.conf_int(alpha)[i][0]}
             coeffs.append(coeff)
-        self.d.df['lnr_coeff'] = self.d.df['lnr_coeff'].append(coeffs, ignore_index=True)
+        self.d.df['linear']['coeff'] = self.d.df['linear']['coeff'].append(coeffs, ignore_index=True)
 
         #|Display individual test summary if required
         if display == True:
             print model.summary()
+
+        #|Create model ID from test_id and add to model dictionary in data class
+        model_id = 'linear_%s' % str(test_id)
+        self.d.mod[model_id] = model
+
+    def logistic(self, data_name, x_col, y_col):
+
+        df = self.d.prepare(data_name, x_col, y_col)
+
+        model = LogisticRegression()
+        model.fit(self.d.x_train, self.d.y_train)
+        print model.coef_
+
+        df['prediction'] = model.predict(self.d.x_train)
+        print df.sort('prediction', ascending=False)
+
+
 
 # |Cluster object for running and storing any cluster based analysis
 class cluster(object):
@@ -63,11 +80,11 @@ class cluster(object):
     def kmeans(self, data_name, x_col, n_clusters, id_col=''):
 
         # |Determine and set 'test_id' to the largest previous 'test_id' +1
-        if 'km_data' in self.d.df:
-            test_id = self.d.df['km_data']['test_id'].max() + 1
+        if 'data' in self.d.df['kmeans']:
+            test_id = self.d.df['kmeans']['data']['test_id'].max() + 1
         else:
-            self.d.df['km_data'] = pd.DataFrame()
-            self.d.df['km_clusters'] = pd.DataFrame()
+            self.d.df['kmeans']['data'] = pd.DataFrame()
+            self.d.df['kmeans']['clusters'] = pd.DataFrame()
             test_id = 1
 
         # |Prepare data by creating array and DataFrame using columns in 'x_col'
@@ -87,7 +104,7 @@ class cluster(object):
         dist = pd.DataFrame(model.transform(self.d.x_train), columns=headers)
         df = df.join(dist)
 
-        self.d.df['km_data'] = self.d.df['km_data'].append(df, ignore_index=True)
+        self.d.df['kmeans']['data'] = self.d.df['kmeans']['data'].append(df, ignore_index=True)
 
         # |Create DataFrame with each cluster and the mean value for each input column
         df = pd.DataFrame()
@@ -97,17 +114,17 @@ class cluster(object):
                 clus['%s_mean' % x_col[j]] = model.cluster_centers_[i][j]
             df = df.append(clus, ignore_index=True)
         df['test_id'] = test_id
-        self.d.df['km_clusters'] = self.d.df['km_clusters'].append(df, ignore_index=True)
+        self.d.df['kmeans']['clusters'] = self.d.df['kmeans']['clusters'].append(df, ignore_index=True)
 
         model_id = 'kmeans_%s' % str(test_id)
         self.d.mod[model_id] = model
 
     def knearest(self, data_name, x_col, y_col, n_clusters, id_col=''):
 
-        if 'kn_data' in self.d.df:
-            test_id = self.d.df['kn_data']['test_id'].max() + 1
+        if 'data' in self.d.df['knearest']:
+            test_id = self.d.df['knearest']['data']['test_id'].max() + 1
         else:
-            self.d.df['kn_data'] = pd.DataFrame()
+            self.d.df['knearest']['data'] = pd.DataFrame()
             test_id = 1
 
         df = self.d.prepare(data_name, x_col, y_col, id_col=id_col)
@@ -116,7 +133,7 @@ class cluster(object):
         model = KNeighborsClassifier(n_clusters)
         model.fit(self.d.x_train, self.d.y_train)
         df['prediction'] = model.predict(self.d.x_train)
-        self.d.df['kn_data'] = self.d.df['kn_data'].append(df, ignore_index=True)
+        self.d.df['knearest']['data'] = self.d.df['knearest']['data'].append(df, ignore_index=True)
 
         model_id = 'knearest_%s' % str(test_id)
         self.d.mod[model_id] = model

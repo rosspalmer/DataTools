@@ -9,7 +9,7 @@ class data(object):
     #|Data class internal stores all external and internal DataFrames (df), all created models (mod),
     #|current X and Y training numpy arrays (x(y)_train) and current X and Y validation numpy arrays (x(y)_valid)
     def __init__(self):
-        self.df = {}
+        self.df = df_setup()
         self.mod = {}
         self.x_train = []
         self.y_train = []
@@ -35,7 +35,7 @@ class data(object):
                 train_size='all', train_ratio=0.5, id_col=''):
 
         #|Pull external data from DataFrame library
-        df = self.df[data_name]
+        df = self.df['external'][data_name]
 
         #|Create X and Y numpy arrays where all data is to be used for training set
         if train_size == 'all':
@@ -120,24 +120,36 @@ class data(object):
                         if index <> '':
                             df = df.set_index(index)
                         data_name = fn[:-4]
-                        self.df[data_name] = df
+                        self.df['external'][data_name] = df
 
         if mode == 'single' or mode == 'compile':
             if mode == compile:
                 data_name = file_search
             if index <> '':
                 df = df.set_index(index)
-            self.df[data_name] = df
+            self.df['external'][data_name] = df
 
     #|Output data from internal DataFrame(s) to csv
-    def to_csv(self, data_name, file_path, index=True):
+    def to_csv(self, type, data_name, file_path, index=True):
         if data_name <> 'ALL':
-            file_string = '%s%s.csv' % (file_path, data_name)
-            self.df[data_name].to_csv(file_string, index=index)
+            file_string = '%s%s_%s.csv' % (file_path, type, data_name)
+            self.df[type][data_name].to_csv(file_string, index=index)
         else:
-            for data_name in self.df:
-                file_string = '%s%s.csv' % (file_path, data_name)
-                self.df[data_name].to_csv(file_string, index=index)
+            for type in self.df:
+                for data_name in self.df[type]:
+                    file_string = '%s%s_%s.csv' % (file_path, type, data_name)
+                    self.df[type][data_name].to_csv(file_string, index=index)
+
+#|Create preliminary structure for DataFrame dictionary
+def df_setup():
+
+    df = {}
+    df['external'] = {}
+    df['linear'] = {}
+    df['logistic'] = {}
+    df['kmeans'] = {}
+    df['knearest'] = {}
+    return df
 
 #|Convert DataFrame X and Y columns into numpy arrays
 def xy_array(df, x_col, y_col):
