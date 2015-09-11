@@ -15,7 +15,7 @@ class regression(object):
 
         #|Determine if linear regression DataFrames are present and if not
         #|create blank DataFrames. Also, set 'test_id'
-        if 'summary' in self.d.df['linear']:
+        if 'anova' in self.d.df['linear']:
             test_id = self.d.df['linear']['anova']['test_id'].max() + 1
         else:
             self.d.df['linear']['anova'] = pd.DataFrame()
