@@ -16,9 +16,9 @@ class regression(object):
         #|Determine if linear regression DataFrames are present and if not
         #|create blank DataFrames. Also, set 'test_id'
         if 'summary' in self.d.df['linear']:
-            test_id = self.d.df['linear']['summary']['test_id'].max() + 1
+            test_id = self.d.df['linear']['anova']['test_id'].max() + 1
         else:
-            self.d.df['linear']['summary'] = pd.DataFrame()
+            self.d.df['linear']['anova'] = pd.DataFrame()
             self.d.df['linear']['coeff'] = pd.DataFrame()
             self.d.df['linear']['data'] = pd.DataFrame()
             test_id = 1
@@ -35,10 +35,10 @@ class regression(object):
         self.d.df['linear']['data'] = self.d.df['linear']['data'].append(df, ignore_index=True)
 
         #|Create dictionary with individual test model summary and add to compiled 'summary' DataFrame
-        summary = {'test_id':test_id, 'n_var':model.df_model, 'n_obs':model.nobs,
+        anova = {'test_id':test_id, 'n_var':model.df_model, 'n_obs':model.nobs,
                    'r_squared':model.rsquared, 'adj_r_squared':model.rsquared_adj,
                    'f_stat':model.fvalue, 'prob_f_stat':model.f_pvalue}
-        self.d.df['linear']['summary'] = self.d.df['linear']['summary'].append(summary, ignore_index=True)
+        self.d.df['linear']['anova'] = self.d.df['linear']['anova'].append(anova, ignore_index=True)
 
         #|Create dictionary for each coefficent on individual test and add to compiled 'coeff' dictionary
         coeffs = []
@@ -54,8 +54,7 @@ class regression(object):
             print model.summary()
 
         #|Create model ID from test_id and add to model dictionary in data class
-        model_id = 'linear_%s' % str(test_id)
-        self.d.mod[model_id] = model
+        self.d.mod['linear'][test_id] = store_model(model, x_col, y_col)
 
     def logistic(self, data_name, x_col, y_col):
 
@@ -116,8 +115,7 @@ class cluster(object):
         df['test_id'] = test_id
         self.d.df['kmeans']['clusters'] = self.d.df['kmeans']['clusters'].append(df, ignore_index=True)
 
-        model_id = 'kmeans_%s' % str(test_id)
-        self.d.mod[model_id] = model
+        self.d.mod['kmeans'][test_id] = store_model(model, x_col)
 
     def knearest(self, data_name, x_col, y_col, n_clusters, id_col=''):
 
@@ -135,6 +133,13 @@ class cluster(object):
         df['prediction'] = model.predict(self.d.x_train)
         self.d.df['knearest']['data'] = self.d.df['knearest']['data'].append(df, ignore_index=True)
 
-        model_id = 'knearest_%s' % str(test_id)
-        self.d.mod[model_id] = model
+        self.d.mod['knearest'][test_id] = store_model(model, x_col, y_col)
 
+#|Create dictionary containing model, x column names, y column names
+def store_model(model, x_col, y_col=''):
+    dic = {}
+    dic['model'] = model
+    dic['x_col'] = x_col
+    if y_col <> '':
+        dic['y_col'] = y_col
+    return dic

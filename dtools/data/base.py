@@ -9,8 +9,8 @@ class data(object):
     #|Data class internal stores all external and internal DataFrames (df), all created models (mod),
     #|current X and Y training numpy arrays (x(y)_train) and current X and Y validation numpy arrays (x(y)_valid)
     def __init__(self):
-        self.df = df_setup()
-        self.mod = {}
+        self.df = nest_setup()
+        self.mod = nest_setup()
         self.x_train = []
         self.y_train = []
         self.id_train = []
@@ -140,8 +140,8 @@ class data(object):
                     file_string = '%s%s_%s.csv' % (file_path, type, data_name)
                     self.df[type][data_name].to_csv(file_string, index=index)
 
-#|Create preliminary structure for DataFrame dictionary
-def df_setup():
+#|Create preliminary structure for nest data/model storage dictionaries
+def nest_setup():
 
     df = {}
     df['external'] = {}
