@@ -42,10 +42,21 @@ class regression(object):
 
         #|Create dictionary for each coefficent on individual test and add to compiled 'coeff' dictionary
         coeffs = []
-        for i in range(len(model.tvalues)):
+        for i in range(len(x_col)):
             coeff = {'test_id':test_id, 'name':x_col[i], 'coeff':model.params[i],
                    'std_err':model.bse[i],'t':model.tvalues[i], 'p':model.pvalues[i],
                    'alpha':alpha,'conf_l':model.conf_int(alpha)[i][1],'conf_h':model.conf_int(alpha)[i][0]}
+
+            #|Perform VIF calculation by performing regression of ith x_col
+            #|on rest of x_col list and return R^2 value and translate to ratio
+            if isinstance(x_col, list):
+                ix_col = list(x_col)
+                ix_col.remove(x_col[i])
+                self.d.prepare(data_name, ix_col, x_col[i])
+                ith_model = sm.OLS(self.d.y_train, self.d.x_train).fit()
+                VIF = 1/(1-ith_model.rsquared_adj)
+                coeff['VIF'] = VIF
+
             coeffs.append(coeff)
         self.d.df['linear']['coeff'] = self.d.df['linear']['coeff'].append(coeffs, ignore_index=True)
 
@@ -53,7 +64,7 @@ class regression(object):
         if display == True:
             print model.summary()
 
-        #|Create model ID from test_id and add to model dictionary in data class
+        #|Add to model dictionary in data class
         self.d.mod['linear'][test_id] = store_model(model, x_col, y_col)
 
     def logistic(self, data_name, x_col, y_col):
@@ -143,3 +154,4 @@ def store_model(model, x_col, y_col=''):
     if y_col <> '':
         dic['y_col'] = y_col
     return dic
+
