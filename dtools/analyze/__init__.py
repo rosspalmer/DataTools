@@ -1,1 +1,1 @@
-__author__ = 'ross'
+from predict import linear, logistic, kmeans, knearest
