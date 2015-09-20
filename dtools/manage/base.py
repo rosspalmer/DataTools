@@ -26,7 +26,7 @@ class manager(object):
         if type == 'linear':
             self.data, model = linear(self.data, x_col, alpha)
         elif type == 'logistic':
-            self.data, model = logistic(self.data)
+            self.data, model = logistic(self.data, x_col, alpha)
         elif type == 'kmeans':
             self.data, model = kmeans(self.data, x_col, n_cluster)
         elif type == 'knearest':

@@ -92,7 +92,12 @@ def setup_df(df, type):
             model_id = 1
 
     elif type == 'logistic':
-        pass
+        if 'coeff' in df['logistic']:
+            model_id = df['logistic']['coeff']['model_id'].max() + 1
+        else:
+            df['logistic']['coeff'] = pd.DataFrame()
+            df['logistic']['data'] = pd.DataFrame()
+            model_id = 1
 
     elif type == 'kmeans':
         if 'data' in df['kmeans']:
