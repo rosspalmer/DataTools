@@ -34,12 +34,12 @@ def from_csv(data, file_path, mode, file_search, index, sep):
     return data
 
 #|Output data from internal DataFrame(s) to csv
-def to_csv(type, data_name, file_path, index=True):
+def to_csv(data, type, data_name, file_path, index):
     if data_name <> 'ALL':
         file_string = '%s%s_%s.csv' % (file_path, type, data_name)
-        self.df[type][data_name].to_csv(file_string, index=index)
+        data.df[type][data_name].to_csv(file_string, index=index)
     else:
-        for type in self.df:
-            for data_name in self.df[type]:
+        for type in data.df:
+            for data_name in data.df[type]:
                 file_string = '%s%s_%s.csv' % (file_path, type, data_name)
-                self.df[type][data_name].to_csv(file_string, index=index)
+                data.df[type][data_name].to_csv(file_string, index=index)

@@ -1,5 +1,5 @@
-from ..data import data_manager, from_csv
-from ..analyze import linear, logistic, kmeans, knearest
+from ..data import data_manager, from_csv, to_csv
+from ..analyze import linear, logistic, kmeans, knearest, predict
 
 class manager(object):
 
@@ -10,6 +10,10 @@ class manager(object):
     #|Load CSV file(s) into 'external' df DataFrame library
     def load_csv(self, file_path, mode='single', file_search='', index='', sep=','):
         self.data = from_csv(self.data, file_path, mode, file_search, index, sep)
+
+    #|Output CSV file(s) to location. Note: Set data_name to 'ALL' to output all data
+    def to_csv(self, type, data_name, file_path, index=False):
+        to_csv(self.data, type, data_name, file_path, index)
 
     #|Initial command to fit and run model
     def fit_model(self, type, data_name, x_col, y_col='', id_col='',
@@ -30,6 +34,11 @@ class manager(object):
 
         #|Store model, data_name, and columns run
         self.mod[type][self.data.model_id] = store_model(model, data_name, x_col, y_col, id_col)
+
+    #|Predict using model
+    def predict(self, type, data_name, model_id):
+        mod = self.mod[type][model_id]
+        predict(self.data, mod, type, data_name)
 
 #|Create preliminary structure for nested model storage dictionaries
 def nest_setup():
