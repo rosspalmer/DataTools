@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Datatools : Data Manipulation and Analysis Tools">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Datatools</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rosspalmer/DataTools">View on GitHub</a>
+
+          <h1 id="project_title">Datatools</h1>
+          <h2 id="project_tagline">Data Manipulation and Analysis Tools</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rosspalmer/DataTools/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rosspalmer/DataTools/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="datatools" class="anchor" href="#datatools" aria-hidden="true"><span class="octicon octicon-link"></span></a>DataTools</h1>
+
+<blockquote>
+<p>v0.1.0</p>
+</blockquote>
+
+<p>The purpose of DataTools is to create a single platform to host many Python data analytics modules (Scikit-learn, Statsmodels, etc) within a standardized structure. We want to provide the end user with ability to experiment with several analytics techniques quickly without having to spend time coding for the needs of a particular analytics module.</p>
+
+<p>DataTools is also designed to automatically regulate the flow of data between the modules as well as provide compatibility with many different data platforms, such as SQL, Excel/CSV files, and pandas.</p>
+
+<h1>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h1>
+
+<h2>
+<a id="supported-statistical-models" class="anchor" href="#supported-statistical-models" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported Statistical Models</h2>
+
+<ul>
+<li>Simple/Multiple Linear - <code>linear</code>
+</li>
+<li>Logistic Regression - <code>logistic</code>
+</li>
+<li>K-Means Clustering - <code>kmeans</code>
+</li>
+<li>K-Means Classification - <code>knearest</code>
+</li>
+</ul>
+
+<h3>
+<a id="planned-models" class="anchor" href="#planned-models" aria-hidden="true"><span class="octicon octicon-link"></span></a>Planned Models</h3>
+
+<ul>
+<li>Discriminate Analysis</li>
+<li>Additional GLS Methods</li>
+<li>Weighted Regression Models</li>
+<li>Neural Networks</li>
+<li>Classification Trees</li>
+<li>Support Vector Machines</li>
+</ul>
+
+<h2>
+<a id="supported-io-data-platforms" class="anchor" href="#supported-io-data-platforms" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported I/O Data Platforms</h2>
+
+<ul>
+<li>CSV Files</li>
+</ul>
+
+<h3>
+<a id="planned-io-platfroms" class="anchor" href="#planned-io-platfroms" aria-hidden="true"><span class="octicon octicon-link"></span></a>Planned I/O Platfroms</h3>
+
+<ul>
+<li>SQL (many flavors)</li>
+<li>Excel Files</li>
+<li>JSON</li>
+<li>XML</li>
+<li>External pandas DataFrames</li>
+</ul>
+
+<h2>
+<a id="additional-planned-features" class="anchor" href="#additional-planned-features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Additional Planned Features</h2>
+
+<ul>
+<li>Randomized data partitioning</li>
+<li>Validation testing</li>
+<li>Automatic categorical variable conversion</li>
+<li>Variable choice optimization for models</li>
+</ul>
+
+<h1>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>DataTools is currently only available via a source distribution install. PyPi (pip) distributions will be added in the future.</p>
+
+<pre><code> git clone https://github.com/rosspalmer/DataTools.git
+ cd DataTools
+ python setup.py install
+</code></pre>
+
+<h1>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="https://github.com/rosspalmer/DataTools/wiki/Documentation">Documentation</a>
+</h1>
+
+<h1>
+<a id="quick-start-guide" class="anchor" href="#quick-start-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick Start Guide</h1>
+
+<p>Most end user actions are accessed using the <code>manager</code> method. Below is a short tutorial on loading data from a CSV file, fitting a <code>linear</code> regression model on the data, and then outputing the results as a series of CSV files.</p>
+
+<p><em>Note: Adding Tutorial</em></p>
+
+<h1>
+<a id="external-analysis-modules" class="anchor" href="#external-analysis-modules" aria-hidden="true"><span class="octicon octicon-link"></span></a>External Analysis Modules</h1>
+
+<p>As I stated in the introduction paragraph, DataTools ultizes external Python modules for statistical modelling. Below are the modules responsible for <strong>ALL</strong> of the statistical modules used within DataTools.</p>
+
+<ul>
+<li><a href="http://statsmodels.sourceforge.net/0.5.0/index.html"><strong>StatsModels</strong></a></li>
+<li><a href="http://scikit-learn.org/stable/"><strong>scikit-learn</strong></a></li>
+</ul>
+
+<h1>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h1>
+
+<p>The MIT License (MIT)</p>
+
+<p>Copyright (c) 2015 Ross Palmer</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Datatools maintained by <a href="https://github.com/rosspalmer">rosspalmer</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
