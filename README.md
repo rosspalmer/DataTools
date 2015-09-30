@@ -1,6 +1,6 @@
 #DataTools
 
-> v0.1.0
+> v0.1.2
 
 The purpose of DataTools is to create a single platform to host many Python data analytics modules (Scikit-learn, Statsmodels, etc) within a standardized structure. We want to provide the end user with ability to experiment with several analytics techniques quickly without having to spend time coding for the needs of a particular analytics module.
 

@@ -1,5 +1,5 @@
+from excel_csv import from_csv
 import pandas as pd
-import random as rn
 
 #|Data class is used to store all data, partition data when needed,
 #|and convert DataFrames into numpy arrays for statistics modules
@@ -7,13 +7,13 @@ class data_manager(object):
 
     #|Data class internal stores all external and internal DataFrames (df), all created models (mod),
     #|current X and Y training numpy arrays (x(y)_train) and current X and Y validation numpy arrays (x(y)_valid)
-    def __init__(self):
-        self.df = nest_setup()
+    def __init__(self, sql):
+        self.sql = sql
+        self.int_df = self.load_internal_df()
+        self.pred_df = {}
         self.current_df = []
-        self.model_id = ''
         self.x = []
         self.y = []
-        self.id = []
 
     #|Base command to prepare data for use in statistic modules
     #|----------------------------------------------------------------------------------
@@ -21,100 +21,40 @@ class data_manager(object):
     #|              DataFrame must already be stored in "data" object
     #| x_col => string or list of strings with the names of columns to be used as "X" data
     #| y_col => string or list of strings with the names of columns to be used as "Y" data
-    #| id_col =>  string or list of strings with the names of columns to be used as identifiers
-    #|              for output data
-    def prepare(self, type, data_name, x_col, y_col='', id_col=''):
+    def prepare(self, data_name, x_col, y_col=''):
 
-        #|Initial Setup for DataFrame nested dictionary and determine model ID
-        self.df, self.model_id = setup_df(self.df, type)
+        #|Load external data set into current df variable
+        ext_table_name = 'ext_%s' % data_name
+        self.current_df = self.sql.select_data(ext_table_name)
 
-        #|Pull external data from DataFrame library
-        df = self.df['external'][data_name]
+        #|Create prediction table for DataFrame if not present for external dataset
+        if data_name not in self.pred_df:
+            self.pred_df[data_name] = pd.DataFrame(index=self.current_df.index)
 
-        self.x, self.y = xy_array(df, x_col, y_col)
-        if id_col <> '':
-            self.id = id_cols(df, id_col)
+        #|Convert X and Y columns into arrays and set as x and y variables
+        self.x, self.y = xy_array(self.current_df, x_col, y_col)
 
-        #|Create DataFrame with all data rows for test and set for later use
-        self.current_df = self.test_df(x_col, y_col, id_col)
+    def load_ext_csv(self, file_path, mode, file_search, index, sep):
+        df, data_name = from_csv(file_path, mode, file_search, index, sep)
+        self.sql.add_new_data('ext', df, data_name)
 
-    #|Create DataFrame with all data rows for "X", "Y" and identification columns
-    def test_df(self, x_col, y_col, id_col):
+    def load_internal_df(self):
 
-        #|Create "X" DataFrame
-        if isinstance(x_col, list):
-            df = pd.DataFrame(self.x, columns=x_col)
-        else:
-            df = pd.DataFrame(self.x, columns=[x_col])
+        int_df = {}
+        for table_name in self.sql.tables:
+            if table_name <> 'models':
+                int_df[table_name] = self.sql.select_data(table_name)
+        return int_df
 
-        #|Create "Y" DataFrame (if required)
-        if y_col <> '':
-            if isinstance(y_col, list):
-                df_y = pd.DataFrame(self.y, columns=y_col)
-            else:
-                df_y = pd.DataFrame(self.y, columns=[y_col])
+    def df_sql_dump(self):
 
-            #|Join "Y" columns to "X" columns
-            df = df.join(df_y)
+        for table_name in self.int_df:
+            self.sql.insert_data(self.int_df[table_name], table_name)
 
-        #|Add identification columns (if present)
-        if id_col <> '':
-            if isinstance(id_col, list):
-                df_id = pd.DataFrame(self.id, columns=id_col)
-            else:
-                df_id = pd.DataFrame(self.id, columns=[id_col])
-            df = df.join(df_id)
+        if len(self.pred_df) > 0:
+            for data_name in self.pred_df:
+                self.sql.add_new_data('pred', self.pred_df[data_name], data_name)
 
-        return df
-
-#|Create preliminary structure for nest DataFrame storage dictionaries
-def nest_setup():
-
-    df = {}
-    df['external'] = {}
-    df['linear'] = {}
-    df['logistic'] = {}
-    df['kmeans'] = {}
-    df['knearest'] = {}
-    return df
-
-#|Setup DataFrames dictionary (df) with blank DataFrames if not present
-#|or determine model_id as maximum value if present
-def setup_df(df, type):
-
-    if type == 'linear':
-        if 'anova' in df['linear']:
-            model_id = df['linear']['anova']['model_id'].max() + 1
-        else:
-            df['linear']['anova'] = pd.DataFrame()
-            df['linear']['coeff'] = pd.DataFrame()
-            df['linear']['data'] = pd.DataFrame()
-            model_id = 1
-
-    elif type == 'logistic':
-        if 'coeff' in df['logistic']:
-            model_id = df['logistic']['coeff']['model_id'].max() + 1
-        else:
-            df['logistic']['coeff'] = pd.DataFrame()
-            df['logistic']['data'] = pd.DataFrame()
-            model_id = 1
-
-    elif type == 'kmeans':
-        if 'data' in df['kmeans']:
-            model_id = df['kmeans']['data']['model_id'].max() + 1
-        else:
-            df['kmeans']['data'] = pd.DataFrame()
-            df['kmeans']['clusters'] = pd.DataFrame()
-            model_id = 1
-
-    elif type == 'knearest':
-        if 'data' in df['knearest']:
-            model_id = df['knearest']['data']['model_id'].max() + 1
-        else:
-            df['knearest']['data'] = pd.DataFrame()
-            model_id = 1
-
-    return df, model_id
 
 #|Convert DataFrame X and Y columns into numpy arrays
 def xy_array(df, x_col, y_col):
@@ -132,13 +72,4 @@ def xy_array(df, x_col, y_col):
         y = ''
 
     return x, y
-
-#|Return DataFrame or Series of identification columns
-def id_cols(df, id_col):
-
-    if isinstance(id_col, list):
-        id = df[id_col]
-    else:
-        id = df[[id_col]]
-    return id
 
