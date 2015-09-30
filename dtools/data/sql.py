@@ -33,9 +33,9 @@ class sql_manager(object):
         data_dict = df.to_dict('record')
         insert_statement = self.tables[table_name].insert()
 
-        if self.proj.sql_dict['type'] == 'sqlite':
+        if self.proj.sql_dict['flavor'] == 'sqlite':
             insert_statement = insert_statement.prefix_with("OR IGNORE")
-        if self.proj.sql_dict['type'] == 'mysql':
+        if self.proj.sql_dict['flavor'] == 'mysql':
             insert_statement = insert_statement.prefix_with("IGNORE")
 
         conn = self.eng.connect()
@@ -61,18 +61,19 @@ class sql_manager(object):
 
     def initial_setup(self):
 
-        if self.proj.sql_dict['type'] == 'sqlite':
+        if self.proj.sql_dict['flavor'] == 'sqlite':
             self.meta.create_all(self.eng)
 
-        if self.proj.sql_dict['type'] == 'mysql':
+        if self.proj.sql_dict['flavor'] == 'mysql':
             self.meta.create_all(self.eng)
 
 def engine_string(sql_dict):
 
-    if sql_dict['type'] == 'sqlite':
-        eng_str = 'sqlite:///%s' % sql_dict['location']
-    elif sql_dict['type'] == 'mysql':
-        eng_str = 'mysql://root:zig2zag@localhost/dtools'
+    if sql_dict['flavor'] == 'sqlite':
+        eng_str = 'sqlite:///%s/%s' % (sql_dict['path'], sql_dict['db_name'])
+    elif sql_dict['flavor'] == 'mysql':
+        eng_str = 'mysql://%s:%s@%s/%s' % \
+                  (sql_dict['user'], sql_dict['password'], sql_dict['host'], sql_dict['db_name'])
 
     return eng_str
 
