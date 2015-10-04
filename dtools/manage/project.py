@@ -78,7 +78,7 @@ def read_config(project_dir, encrypt_pass='None'):
     elif info[0] == 'mysql':
         sql_dic['flavor'] = 'mysql'
         sql_dic['host'] = info[1]
-        sql_dic['username'] = info[2]
+        sql_dic['user'] = info[2]
         sql_dic['password'] = info[3]
         sql_dic['db_name'] = info[4]
 

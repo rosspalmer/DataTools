@@ -49,11 +49,18 @@ class data_manager(object):
     def df_sql_dump(self):
 
         for table_name in self.int_df:
-            self.sql.insert_data(self.int_df[table_name], table_name)
+            df = self.int_df[table_name].where((pd.notnull(self.int_df[table_name])), None)
+            self.sql.insert_data(df, table_name)
 
-        if len(self.pred_df) > 0:
-            for data_name in self.pred_df:
-                self.sql.add_new_data('pred', self.pred_df[data_name], data_name)
+        #if len(self.pred_df) > 0:
+        #    for data_name in self.pred_df:
+        #        self.sql.add_new_data('pred', self.pred_df[data_name], data_name)
+
+    def build_model_string(self, string):
+        string = string.replace(" ","")
+        xy_cols = string.split("~")
+        y_col = xy_cols[0]
+        x_col = xy_cols[1].split("+")
 
 
 #|Convert DataFrame X and Y columns into numpy arrays
@@ -72,4 +79,9 @@ def xy_array(df, x_col, y_col):
         y = ''
 
     return x, y
+
+def interaction(df, x1_name, x2_name):
+    interaction_name = '%s*%s' % (x1_name, x2_name)
+    df[interaction_name] = df[x1_name]*df[x2_name]
+    return df
 

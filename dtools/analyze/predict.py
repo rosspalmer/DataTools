@@ -27,9 +27,14 @@ def logistic(data, model_id, x_col, alpha):
     data.x = sm.add_constant(data.x)
     model = sm.GLM(data.y, data.x, family=sm.families.Binomial(sm.families.links.logit)).fit()
 
+    summary = {'model_id':model_id, 'n_var':model.df_model, 'n_obs':model.nobs,
+               'log_likely':model.llf, 'aic':model.aic,
+               'p_chi2':model.pearson_chi2, 'deviance':model.deviance}
+    data.int_df['logistic_summary'] = data.int_df['logistic_summary'].append(summary, ignore_index=True)
+
     #|Build coefficients table and add to DataFrame dictionary
     coeffs = sm_regression_coeffs('logistic', model, model_id, x_col, alpha)
-    data.int_df['logistic']['coeff'] = data.int_df['logistic']['coeff'].append(coeffs, ignore_index=True)
+    data.int_df['logistic_coeff'] = data.int_df['logistic_coeff'].append(coeffs, ignore_index=True)
 
     return data, model
 
@@ -77,7 +82,7 @@ def knearest(data, model_id, n_clusters):
 
 def sm_regression_coeffs(type, model, model_id, x_col, alpha):
     coeffs = []
-    for i in range(len(x_col)+1):
+    for i in range(len(x_col)):
         if i > 0:
             name = x_col[i-1]
         else:

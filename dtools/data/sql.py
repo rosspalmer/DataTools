@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sql_tables import hardcoded_tables
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Float
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Float, Text
 from sqlalchemy.sql import select
 
 class sql_manager(object):
@@ -20,12 +20,14 @@ class sql_manager(object):
             table_name = 'ext_%s' % data_name
         elif mode == 'pred':
             table_name = 'pred_%s' % data_name
-        self.tables[table_name] = table_builder(self.meta, df, table_name)
+        elif mode == 'asis':
+            table_name = data_name
 
+        self.tables[table_name] = table_builder(self.meta, df, table_name)
         self.tables[table_name].drop(self.eng, checkfirst=True)
         self.tables[table_name].create(self.eng)
 
-        df['id'] = df.index + 1
+        df['_id'] = df.index + 1
         self.insert_data(df, table_name)
 
     def insert_data(self, df, table_name):
@@ -79,16 +81,25 @@ def engine_string(sql_dict):
 
 def table_builder(meta, df, table_name):
     table = Table(table_name, meta,
-                Column('id', Integer, primary_key=True))
+                Column('_id', Integer, primary_key=True))
 
     for col_name in df:
+
         dtype = df.dtypes[col_name]
+
         if dtype == 'int64':
             new_col = Column(col_name, Integer)
+
         elif dtype == 'float64':
             new_col = Column(col_name, Float)
+
         elif dtype == 'object':
             size = df[col_name].str.len().max()
-            new_col = Column(col_name, String(size))
+            if size > 255:
+                new_col = Column(col_name, Text)
+            else:
+                new_col = Column(col_name, String(size))
+
         table.append_column(new_col)
+
     return table
