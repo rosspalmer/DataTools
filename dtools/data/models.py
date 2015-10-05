@@ -19,18 +19,16 @@ class model_manager(object):
         self.model_table = self.model_table.append(mod_dict, ignore_index=True)
         self.model_object[type][model_id] = model
 
-    def next_model_id(self, type):
-        model_type_table = self.model_table[self.model_table['type'] == type]
-        if len(model_type_table.index) > 0:
-            model_id = model_type_table['model_id'].max() + 1
+    def next_model_id(self):
+        if len(self.model_table.index) > 0:
+            model_id = self.model_table['model_id'].max() + 1
         else:
             model_id = 1
         return model_id
 
     def add_prediction(self, data, type, model_id, data_name):
 
-        model_table = self.model_table[self.model_table['type'] == type]
-        model_table = model_table[model_table['model_id'] == model_id]
+        model_table = self.model_table[self.model_table['model_id'] == model_id]
 
         x_col = read_comma_delimit(model_table['x_col'].iloc[0])
         y_col = read_comma_delimit(model_table['y_col'].iloc[0])

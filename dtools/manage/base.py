@@ -1,4 +1,5 @@
 from project import project
+from view import display_models
 from ..data import data_manager, to_csv, sql_manager, model_manager
 from ..analyze import linear, logistic, kmeans, knearest
 
@@ -22,7 +23,7 @@ class manager(object):
     def fit_model(self, type, data_name, x_col, y_col='', alpha=0.05, n_cluster=2):
 
         #|Determine model_id number by checking previous models for type
-        model_id = self.model.next_model_id(type)
+        model_id = self.model.next_model_id()
 
         #|Prepare data for model
         self.data.prepare(data_name, x_col, y_col)
@@ -48,3 +49,7 @@ class manager(object):
         self.data.df_sql_dump()
 
         self.sql.insert_data(self.model.model_table, 'models')
+
+    def display_results(self, model_list):
+
+        display_models(self.data, self.model, model_list)

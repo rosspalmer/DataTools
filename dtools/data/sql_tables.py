@@ -38,8 +38,8 @@ def hardcoded_tables(eng, meta):
 
     table_dict['models'] = \
         Table('models', meta,
-              Column('type', String(20), primary_key=True, autoincrement=False),
               Column('model_id', Integer, primary_key=True, autoincrement=False),
+              Column('type', String(20)),
               Column('x_col', Text), Column('y_col', String(50)))
 
     return table_dict

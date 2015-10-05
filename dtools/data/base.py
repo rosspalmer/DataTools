@@ -52,9 +52,9 @@ class data_manager(object):
             df = self.int_df[table_name].where((pd.notnull(self.int_df[table_name])), None)
             self.sql.insert_data(df, table_name)
 
-        #if len(self.pred_df) > 0:
-        #    for data_name in self.pred_df:
-        #        self.sql.add_new_data('pred', self.pred_df[data_name], data_name)
+        if len(self.pred_df) > 0:
+            for data_name in self.pred_df:
+                self.sql.add_new_data('pred', self.pred_df[data_name], data_name)
 
     def build_model_string(self, string):
         string = string.replace(" ","")
