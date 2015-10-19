@@ -27,10 +27,13 @@ DataTools is also designed to automatically regulate the flow of data between th
 ##Supported I/O Data Platforms
 
 - CSV Files
+- SQL
+    - sqlite
+    - MySQL
+    - More flavors to come
 
 ###Planned I/O Platfroms
 
-- SQL (many flavors)
 - Excel Files
 - JSON
 - XML
