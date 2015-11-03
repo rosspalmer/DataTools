@@ -1,7 +1,7 @@
-import pandas as pd
+import numpy as np
 from prettytable import PrettyTable
 
-def display_models(data, model_manager, model_list):
+def display_summary(data, model_manager, model_list):
 
     model_df = model_manager.model_table
     if model_list <> 'ALL':
@@ -16,9 +16,6 @@ def display_models(data, model_manager, model_list):
         summary_df = summary_df[summary_df['model_id'].isin(model_list)]
 
         summary_table = PrettyTable(summary_df.columns.tolist())
-
-        for ll in summary_df.iloc[0].tolist():
-            print type(ll)
 
         for i in range(len(summary_df.index)):
             summary_table.add_row(summary_df.iloc[i].tolist())
@@ -43,9 +40,8 @@ def display_models(data, model_manager, model_list):
             coeff_df_model = coeff_df[coeff_df['model_id']==model_id]
             coeff_table = PrettyTable(coeff_df_model.columns.tolist())
 
-            for i in range(len(coeff_df_model.index)):
-                coeff_table.add_row(coeff_df_model.iloc[i].tolist())
+            for j in range(len(coeff_df_model.index)):
+                coeff_table.add_row(coeff_df_model.iloc[j].tolist())
 
             print coeff_table
             print
-

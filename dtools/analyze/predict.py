@@ -3,6 +3,8 @@ import statsmodels.api as sm
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
 
+SIZE = 4
+
 #|Simple and multiple linear regression model
 def linear(data, model_id, x_col, alpha):
 
@@ -12,8 +14,8 @@ def linear(data, model_id, x_col, alpha):
 
     #|Create dictionary with individual test model summary and add to compiled 'summary' DataFrame
     summary = {'model_id':model_id, 'n_var':model.df_model, 'n_obs':model.nobs,
-               'r_squared':model.rsquared, 'adj_r_squared':model.rsquared_adj,
-               'f_stat':model.fvalue, 'prob_f_stat':model.f_pvalue}
+               'r_squared':round(model.rsquared,SIZE), 'adj_r_squared':round(model.rsquared_adj,SIZE),
+               'f_stat':round(model.fvalue,SIZE), 'prob_f_stat':round(model.f_pvalue,SIZE)}
     data.int_df['linear_summary'] = data.int_df['linear_summary'].append(summary, ignore_index=True)
 
     #|Build coefficients table and add to data object
@@ -22,14 +24,17 @@ def linear(data, model_id, x_col, alpha):
 
     return data, model
 
+#|Logistic Regression model
 def logistic(data, model_id, x_col, alpha):
 
+    #|Fit logistic regression model
     data.x = sm.add_constant(data.x)
     model = sm.GLM(data.y, data.x, family=sm.families.Binomial(sm.families.links.logit)).fit()
 
+    #|Output summary information dictionary and add to 'logistic_summary' DataFrame
     summary = {'model_id':model_id, 'n_var':model.df_model, 'n_obs':model.nobs,
-               'log_likely':model.llf, 'aic':model.aic,
-               'p_chi2':model.pearson_chi2, 'deviance':model.deviance}
+               'log_likely':round(model.llf,SIZE), 'aic':round(model.aic,SIZE),
+               'p_chi2':round(model.pearson_chi2, SIZE), 'deviance':round(model.deviance,SIZE)}
     data.int_df['logistic_summary'] = data.int_df['logistic_summary'].append(summary, ignore_index=True)
 
     #|Build coefficients table and add to DataFrame dictionary
@@ -38,7 +43,8 @@ def logistic(data, model_id, x_col, alpha):
 
     return data, model
 
-# |Simple KMeans clustering method for 'n_cluster' number of clusters
+#|Simple KMeans clustering method for 'n_cluster' number of clusters
+#|----NOTE: CURRENTLY BROKEN----
 def kmeans(data, model_id, x_col, n_clusters):
 
     #|Add test ID number and identifier columns
@@ -69,6 +75,8 @@ def kmeans(data, model_id, x_col, n_clusters):
 
     return data, model
 
+#|Knearest Neighbor cluster classification model
+#|----NOTE: CURRENTLY BROKEN----
 def knearest(data, model_id, n_clusters):
 
     data.current_df['model_id'] = model_id
@@ -80,16 +88,19 @@ def knearest(data, model_id, n_clusters):
 
     return data, model
 
+#|Create compiled dictionary for individual coefficent information in regression models
 def sm_regression_coeffs(type, model, model_id, x_col, alpha):
+
     coeffs = []
-    for i in range(len(x_col)):
+    for i in range(len(x_col)+1):
         if i > 0:
             name = x_col[i-1]
         else:
             name = 'intercept'
         coeff = {'model_id':model_id, 'name':name, 'coeff':model.params[i],
-                 'std_err':model.bse[i], 't':model.tvalues[i], 'p':model.pvalues[i],
-                 'alpha':alpha, 'conf_l':model.conf_int(alpha)[i][1], 'conf_h':model.conf_int(alpha)[i][0]}
+                 'std_err':round(model.bse[i],SIZE), 't':round(model.tvalues[i],SIZE), 'p':round(model.pvalues[i],SIZE),
+                 'alpha':alpha, 'conf_l':round(model.conf_int(alpha)[i][1],SIZE),
+                 'conf_h':round(model.conf_int(alpha)[i][0],SIZE)}
         if type == 'logistic':
             coeff['z'] = coeff.pop('t')
         coeffs.append(coeff)

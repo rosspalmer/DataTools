@@ -1,5 +1,5 @@
 from project import project
-from view import display_models
+from view import display_summary
 from ..data import data_manager, to_csv, sql_manager, model_manager
 from ..analyze import linear, logistic, kmeans, knearest
 
@@ -26,7 +26,7 @@ class manager(object):
         model_id = self.model.next_model_id()
 
         #|Prepare data for model
-        self.data.prepare(data_name, x_col, y_col)
+        self.data.prepare(data_name, x_col, y_col, 'train')
 
         #|Fit model and return result data
         if type == 'linear':
@@ -42,14 +42,32 @@ class manager(object):
         self.model.store_model(model, type, model_id, x_col, y_col)
 
         #|Add prediction to 'pred' DataFrame in data object
-        self.data = self.model.add_prediction(self.data, type, model_id, data_name)
+        self.data = self.model.add_prediction(self.data, model_id, data_name, 'train')
 
+    #|Run prediction on test partition for dataset and model_id
+    def predict(self, model_id, data_name):
+
+        self.model.add_prediction(self.data, model_id, data_name, 'test')
+
+    #|Return data as DataFrame
+    def output_df(self, type, table_name, predict=False):
+
+        if type == 'ext':
+            return self.data.output_ext(table_name, predict)
+
+    #|Insert internal DataFrames into SQL database
     def sql_dump(self):
 
         self.data.df_sql_dump()
 
         self.sql.insert_data(self.model.model_table, 'models')
 
+    #|Display model results
     def display_results(self, model_list):
 
-        display_models(self.data, self.model, model_list)
+        display_summary(self.data, self.model, model_list)
+
+    #|Set partition to dataset
+    def partition_data(self, data_name, ratio='', seed=''):
+
+        self.data.set_partition(data_name, ratio, seed)

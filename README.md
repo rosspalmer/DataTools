@@ -1,6 +1,6 @@
 #DataTools
 
-> v0.1.2
+> v0.1.3
 
 The purpose of DataTools is to create a single platform to host many Python data analytics modules (Scikit-learn, Statsmodels, etc) within a standardized structure. We want to provide the end user with ability to experiment with several analytics techniques quickly without having to spend time coding for the needs of a particular analytics module.
 
@@ -24,24 +24,27 @@ DataTools is also designed to automatically regulate the flow of data between th
 - Classification Trees
 - Support Vector Machines
 
-##Supported I/O Data Platforms
-
-- CSV Files
-
-###Planned I/O Platfroms
-
-- SQL (many flavors)
-- Excel Files
-- JSON
-- XML
-- External pandas DataFrames
-
-##Additional Planned Features
+##Supported Productivity Features
 
 - Randomized data partitioning
+
+###Planned Productivity Features
+
 - Validation testing
 - Automatic categorical variable conversion
 - Variable choice optimization for models
+
+##Supported I/O Data Platforms
+
+- CSV Files
+- SQL
+- External pandas DataFrame
+
+###Planned I/O Platfroms
+
+- Excel Files
+- JSON
+- XML
 
 #Installation
 

@@ -1,5 +1,6 @@
 from excel_csv import from_csv
 import pandas as pd
+import random as rn
 
 #|Data class is used to store all data, partition data when needed,
 #|and convert DataFrames into numpy arrays for statistics modules
@@ -12,6 +13,7 @@ class data_manager(object):
         self.int_df = self.load_internal_df()
         self.pred_df = {}
         self.current_df = []
+        self.partitions = {}
         self.x = []
         self.y = []
 
@@ -21,11 +23,10 @@ class data_manager(object):
     #|              DataFrame must already be stored in "data" object
     #| x_col => string or list of strings with the names of columns to be used as "X" data
     #| y_col => string or list of strings with the names of columns to be used as "Y" data
-    def prepare(self, data_name, x_col, y_col=''):
+    def prepare(self, data_name, x_col, y_col, mode):
 
         #|Load external data set into current df variable
-        ext_table_name = 'ext_%s' % data_name
-        self.current_df = self.sql.select_data(ext_table_name)
+        self.current_df = self.partition(mode, data_name)
 
         #|Create prediction table for DataFrame if not present for external dataset
         if data_name not in self.pred_df:
@@ -62,6 +63,50 @@ class data_manager(object):
         y_col = xy_cols[0]
         x_col = xy_cols[1].split("+")
 
+    def output_ext(self, data_name, predict=False):
+
+        ext_table_name = 'ext_%s' % data_name
+        df = self.sql.select_data(ext_table_name)
+
+        if predict:
+            df = df.join(self.pred_df[data_name])
+
+        return df
+
+    def partition(self, mode, data_name):
+
+        ext_table_name = 'ext_%s' % data_name
+        df = self.sql.select_data(ext_table_name)
+
+        if data_name not in self.partitions:
+            sample_index = range(len(df.index))
+            return df
+
+        else:
+
+            settings = self.partitions[data_name]
+
+            rn.seed(settings['seed'])
+            sample_index = rn.sample(range(len(df.index)), int(settings['ratio']*len(df.index)))
+
+            if mode == 'train':
+                df = df.iloc[sample_index]
+            elif mode == 'test':
+                df = df[~df.index.isin(sample_index)]
+            df = df.sort()
+
+            return df
+
+    def set_partition(self, data_name, ratio='', seed=''):
+
+        if data_name not in self.partitions:
+            self.partitions[data_name] = {'ratio':1.0, 'seed':rn.randint(1,10000)}
+
+        if ratio <> '':
+            self.partitions[data_name]['ratio'] = ratio
+
+        if seed <> '':
+            self.partitions[data_name]['seed'] = seed
 
 #|Convert DataFrame X and Y columns into numpy arrays
 def xy_array(df, x_col, y_col):
