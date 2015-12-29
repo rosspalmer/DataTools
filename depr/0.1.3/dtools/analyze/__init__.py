@@ -1,0 +1,1 @@
+from predict import linear, logistic, kmeans, knearest

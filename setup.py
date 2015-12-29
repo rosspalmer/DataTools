@@ -7,7 +7,7 @@ config = {
     'description':'Data Mining and Analysis Tools',
     'author': 'ross palmer',
     'license':'MIT',
-    'version': '0.1.3',
+    'version': '0.2.0',
     'install_requires': ['SQLAlchemy','pandas','numpy','PyMySQL'],
     'packages': find_packages(),
     'scripts': [],
