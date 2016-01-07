@@ -7,8 +7,8 @@ config = {
     'description':'Data Mining and Analysis Tools',
     'author': 'ross palmer',
     'license':'MIT',
-    'version': '0.2.0',
-    'install_requires': ['SQLAlchemy','pandas','numpy','PyMySQL'],
+    'version': '0.2.3',
+    'install_requires': ['pandas','numpy'],
     'packages': find_packages(),
     'scripts': [],
     'name':'dtools'
