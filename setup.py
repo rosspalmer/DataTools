@@ -7,7 +7,7 @@ config = {
     'description':'Data Mining and Analysis Tools',
     'author': 'ross palmer',
     'license':'MIT',
-    'version': '0.2.3',
+    'version': '0.2.5',
     'install_requires': ['pandas','numpy'],
     'packages': find_packages(),
     'scripts': [],
