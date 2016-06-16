@@ -1,6 +1,6 @@
 
-from formatting import format
-from source import data_source
+from .formatting import format
+from .source import data_source
 
 import pandas as pd
 

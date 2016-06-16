@@ -15,9 +15,9 @@ def pca(df, number, name=None, verbose=0):
     mod_pca.fit(df)
 
     if verbose==1:
-        print'>> Explained Variance <<'
-        print mod_pca.explained_variance_
-        print mod_pca.explained_variance_ratio_
+        print('>> Explained Variance <<')
+        print(mod_pca.explained_variance_)
+        print(mod_pca.explained_variance_ratio_)
 
     tran_pca =  mod_pca.transform(df)
 
