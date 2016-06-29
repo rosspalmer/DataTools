@@ -17,8 +17,9 @@ def summary(actual, predict_prob, thres=0.5, prob_hist=False):
     print('Accuracy: %s' % round(accuracy_score(actual, predict), 3))
     print('Precision: %s' % round(precision_score(actual, predict), 3))
     print('Recall: %s' % round(recall_score(actual, predict), 3))
-    print('Proportion: %s' % round(predict.mean(), 3))
     print()
+    print('Predicted Proportion: %s' % round(predict.mean(), 3))
+    print('Actual Proportion: %s' % round(actual.mean(), 3))
 
     print('-----Confusion Matrix-----')
     print()

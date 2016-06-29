@@ -14,6 +14,8 @@ class data_holder(object):
         self.current_ds = None
         self.current_index = []
         self.remain_index = []
+        self.subs = {}
+        self.default_sub = None
 
     def load_csv(self, name, filepath, y_col=None, x_col=None, 
                          id_col=None, sep=','):
@@ -51,6 +53,9 @@ class data_holder(object):
                 self.ds[self.current_ds].partition(ratio, self.remain_index)
         self.current_index = self.x.index
 
+        if self.default_sub is not None:
+            self.use_sub(self.default_sub)
+
     def reset_ds(self):
 
         self.x = self.ds[self.current_ds].x
@@ -61,12 +66,12 @@ class data_holder(object):
         self.ds[self.current_ds].x = self.x
         self.ds[self.current_ds].y = self.y
 
-    def use_ds(self, name, new=False):
+    def use_ds(self, name, default_sub=None, new=False):
 
         self.current_ds = name
         if new:
-            self.remain_index = self.ds[name].x.index
-            self.current_index = self.ds[name].x.index
+            self.remain_index = self.ds[name].x.index.tolist()
+            self.current_index = self.ds[name].x.index.tolist()
 
         self.x = self.ds[name].x.loc[self.remain_index]
         if self.ds[name].y is None:
@@ -74,29 +79,28 @@ class data_holder(object):
         else:
             self.y = self.ds[name].y.loc[self.remain_index]
 
+        self.default_sub = default_sub
+
     def format(self, mode):
 
         self.x, self.y = format(mode, self.x, self.y)
             
-    def create_sub(self, sub_name, col_contain=None, col_not_contain=None,
-                   row_filter=None):
-                       
-        sub_param = {}
-        sub_param['col_contain'] = col_contain
-        sub_param['col_not_contain'] = col_not_contain
-        sub_param['row_filter'] = row_filter
+    def create_sub(self, sub_name, col_filter=None, row_filter=None,
+                    col_dummy=None, col_normalize=None):
 
-        self.ds[self.current_ds].sub[sub_name] = sub_param
+        self.subs[sub_name] = {'col_filter':col_filter, 'row_filter':row_filter,
+                        'col_dummy':col_dummy, 'col_normalize':col_normalize}
 
-    def use_sub(self, sub_name, output_only=False, reset_index=False):
 
-        x, y = self.ds[self.current_ds].subset(sub_name, self.current_index)
-        
+    def use_sub(self, sub_name, output_only=False):
+
+        x, y = self.ds[self.current_ds].subset(self.subs[sub_name])
+
+        x = x.loc[self.current_index]
+        y = y.loc[self.current_index]
+
         if output_only:
             return x, y
         if not output_only:
             self.x = x
             self.y = y
-
-        if reset_index:
-            self.remain_index = x.index
