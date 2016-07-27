@@ -20,7 +20,7 @@ def summary(actual, predict_prob, thres=0.5, prob_hist=False):
     print()
     print('Predicted Proportion: %s' % round(predict.mean(), 3))
     print('Actual Proportion: %s' % round(actual.mean(), 3))
-	print()
+    print()
     print('-----Confusion Matrix-----')
     print()
     cm = confusion_matrix(actual, predict)
