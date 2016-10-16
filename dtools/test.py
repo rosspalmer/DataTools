@@ -1,7 +1,7 @@
-from cv import CrossValidate
+from cross_validate import CrossValidate
 
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 
 import warnings
@@ -9,43 +9,51 @@ warnings.filterwarnings("ignore")
 
 class mod_object(object):
 
-	def __init__(self):
+    def __init__(self):
 
-		self.mod_type = 'classification'
-		self.features = ['age','job','education','housing','age_young']
+        self.mod_type = 'classification'
+        self.features = ['job','education','housing','age_young',
+                         'campaign','pdays']
 
-		self.parameters = {'n_estimators':[10,50,100],
-						   'age_young':[20,30,40]}
+        self.parameters = {'age_young':[20,30,40],'C':[0.1,0.5,1,5]}
 
-		self.df = pd.read_csv('bank-full.csv')
+        self.df = pd.read_csv('bank-full.csv')
 
-	def fit(self, feat, param, index):
+    def fit(self, feat, param, index):
 
-		df = self.df.iloc[index]
-		df['age_young'] = df['age'] <= param['age_young']
+        df = self.df.iloc[index]
+        df['age_young'] = df['age'] <= param['age_young']
 
-		x = df[feat]
-		x = pd.get_dummies(x)
-		y = df['subscribed']
+        x = df[feat]
+        x = pd.get_dummies(x, drop_first=True)
+        y = df['subscribed']
 
-		mod = RandomForestClassifier(n_estimators=param['n_estimators'])
-		mod.fit(x.values, y.values)
+        mod = LogisticRegression(C=param['C'], solver='sag')
+        mod.fit(x.values, y.values)
 
-		return mod
+        return mod
 
-	def predict(self, mod, feat, param, index):
+    def predict(self, mod, feat, param, index):
 
-		df = self.df.iloc[index]
-		df['age_young'] = df['age'] <= param['age_young']
+        df = self.df.iloc[index]
+        df['age_young'] = df['age'] <= param['age_young']
 
-		x = df[feat]
-		x = pd.get_dummies(x)
-		y = df['subscribed']
+        x = df[feat]
+        x = pd.get_dummies(x, drop_first=True)
+        y = df['subscribed']
 
-		pred = mod.predict_proba(x.values)[:,1]
+        pred = mod.predict_proba(x.values)[:, 1]
 
-		return pred, y.values
+        return pred, y.values
+
 
 mobj = mod_object()
-kf = KFold()
-CrossValidate(mobj, kf, mobj.df)
+kf = KFold(n_splits=5, shuffle=True).split(mobj.df)
+cv = CrossValidate(mobj, kf)
+
+cv.run()
+
+print(cv.feature_summary())
+print(cv.model_summary().sort_values('auc', ascending=False))
+
+cv.res.to_csv('test.csv')
